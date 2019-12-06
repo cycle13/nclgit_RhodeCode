@@ -1,4 +1,4 @@
-2***********************************************************************************
+;***********************************************************************************
 ; calip25_isccp_am4_totcld.ncl
 ;***********************************************************************************
 ;
@@ -89,6 +89,7 @@ data_isccp = addfile(infile_isccp,"r") ; from isccp observations
   print("calipso first infile is: "+infile8)
   print("calipso second infile is: "+infile8_new)
   print("isccp infile is: "+infile_isccp)
+
 var4 = data->$varname4$(0,:,:)  ; from calipso simulator                              
 ;var5 = data_isccp_sim->$varname5$(0,:,:)  ; from isccp simulator                              
 var5 = data_isccp_simb->$varname5$(0,:,:)  ; from isccp simulator                              
@@ -103,11 +104,18 @@ var4cal25scale=100*var4cal25
 crapname="cltisccp"
 var_isccp_o=data_isccp->$crapname$(0,:,:) ; isccp observations
 
+;var4cal25=lonPivot(var4cal25,-0.0)
+
+;print("-=-=-=-=-=-=-=-=-=-=-=-=-=")
+;printVarSummary(var4)
+;printVarSummary(var5)
+;printVarSummary(var4cal25scale)
+;printVarSummary(var_isccp_o)
+;print("-=-=-=-=-=-=-=-=-=-=-=-=-=")
 
 var4cal@_FillValue = 1.e+20
 var4cal25@_FillValue = 1.e+20
 ;
-
 ; which resolution are we using?
 ;var4calscale=var4cal2scale ; 2x2 degree resolution
 var4calscale=var4cal25scale ; 2.5x2.5 degree resolution
@@ -116,6 +124,9 @@ var4calscale!0="lat"
 var4calscale&lat=var4cal25&latitude
 var4calscale!1="lon"
 var4calscale&lon=var4cal25&longitude
+;print("-=-=-=-=-=-=-=-=-=-=-=-=-=")
+;printVarSummary(var4calscale)
+;print("-=-=-=-=-=-=-=-=-=-=-=-=-=")
 
 ;var_isccp_o!0="latitude"
 ;var_isccp_o&lat=var_isccp&latitude
@@ -223,17 +234,17 @@ print("-----------------------------------------------------------------------")
 
 
 var_90x180=interpolated_var_cal
-  printVarSummary(var_90x180)
+;  printVarSummary(var_90x180)
 
 var_isccp_90x180=interpolated_var_isccp
   print("dimensions of interpolated model data: "+dimsizes(var_90x180))
   print("dimensions of interpolated isccp model data: "+dimsizes(var_isccp_90x180))
 
-;;var_90x180!0="lat"
-;;var_90x180&lat=var4cal25&latitude
-;;var_90x180!1="lon"
-;;var_90x180&lon=var4cal25&longitude
-;
+;var_90x180!0="lat"
+;var_90x180&lat=LAT_25x25
+;var_90x180!1="lon"
+;var_90x180&lon=LON_25x25
+;LON_25x25;
 var_isccp_90x180!0="lat"
 var_isccp_90x180&lat=var4cal25&latitude
 var_isccp_90x180!1="lon"
@@ -276,14 +287,20 @@ var_90x180_weighted_ave  = wgt_areaave(var_90x180,clat_cobs,1.0,0)
 var_isccp_90x180_weighted_ave  = wgt_areaave(var_isccp_90x180,clat_cobs,1.0,0)
 
 print("***********************")
+var4calscale=lonPivot(var4calscale,0.5)
 printVarSummary(var4calscale)
 print("***********************")
+;var_90x180=lonPivot(var_90x180,0.5)
 printVarSummary(var_90x180)
+;print(var_90x180&lon)
 print("***********************")
 print("***********************")
+var_isccp=lonPivot(var_isccp,0.5)
 printVarSummary(var_isccp)
 print("***********************")
+var_isccp_90x180=lonPivot(var_isccp_90x180,0.5)
 printVarSummary(var_isccp_90x180)
+;var_isccp=lonPivot(var_isccp,0.5)
 print("***********************")
 
 ;var_mask = where(var4calscale.eq.var4calscale@_FillValue,var4calscale@_FillValue,var_90x180)
@@ -297,9 +314,10 @@ print("***********************")
 am4tcl_bias=var_90x180-var4calscale
 
 am4tcl_bias!0="lat"
-am4tcl_bias&lat=var4cal25&latitude
+am4tcl_bias&lat=var4calscale&lat
 am4tcl_bias!1="lon"
-am4tcl_bias&lon=var4cal25&longitude
+am4tcl_bias&lon=var4calscale&lon
+printVarSummary(am4tcl_bias)
 ;
 am4_bias_cal_weighted_ave  = wgt_areaave(am4tcl_bias,clat_cobs,1.0,0)
   print("weighted total cloud cover bias with calipso simulator: "+am4_bias_cal_weighted_ave)
