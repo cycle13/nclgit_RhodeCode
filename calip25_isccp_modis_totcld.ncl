@@ -67,7 +67,7 @@ infile_isccp_am4="/Users/silvers/data/am4p0/atmos_cmip.clisccp.1980-2014.cdotmn.
 print("!!! the output from the isccp simulator is incomplete and should be updated...")
 
 ; modis simulator
-infile_modis=
+;infile_modis=
 
 ;infile2=path_to8xdaily+"atmos_8xdaily.197901-200812_cllcalipso_tmean.nc"
 ;infile2=path_to8xdaily+"atmos_8xdaily.197901-200812_clmcalipso_tmean.nc"
