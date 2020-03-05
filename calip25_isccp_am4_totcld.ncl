@@ -78,17 +78,10 @@ data_isccp_sim = addfile(infile_isccpsim,"r") ; from isccp simulator
 data_isccp_simb = addfile(infile_isccpsimb,"r") ; from isccp simulator
 data_clt = addfile(infile_clt,"r") ; from default output
 
-; from calipso obs
-data8 = addfile(infile8,"r")
-data_cal25 = addfile(infile8_new,"r")
-data_isccp = addfile(infile_isccp,"r") ; from isccp observations
 
-  print("am4p0 calip sim data file is: "+infile)
-  print("am4p0 isccp sim data file is: "+infile_isccpsim)
-  print("am4p0 clt data file is: "+infile_clt)
-  print("calipso first infile is: "+infile8)
-  print("calipso second infile is: "+infile8_new)
-  print("isccp infile is: "+infile_isccp)
+data8 = addfile(infile8,"r")           ; calipso observations
+data_cal25 = addfile(infile8_new,"r")  ; calipso observations
+data_isccp = addfile(infile_isccp,"r") ; from isccp observations
 
 var4 = data->$varname4$(0,:,:)  ; from calipso simulator                              
 ;var5 = data_isccp_sim->$varname5$(0,:,:)  ; from isccp simulator                              
@@ -101,66 +94,57 @@ var4cal25 = data_cal25->$varname4$(0,:,:)
 var4cal2scale=100*var4cal
 var4cal25scale=100*var4cal25
 
-crapname="cltisccp"
-var_isccp_o=data_isccp->$crapname$(0,:,:) ; isccp observations
-
-;var4cal25=lonPivot(var4cal25,-0.0)
-
-;print("-=-=-=-=-=-=-=-=-=-=-=-=-=")
-;printVarSummary(var4)
-;printVarSummary(var5)
-;printVarSummary(var4cal25scale)
-;printVarSummary(var_isccp_o)
-;print("-=-=-=-=-=-=-=-=-=-=-=-=-=")
-
-var4cal@_FillValue = 1.e+20
-var4cal25@_FillValue = 1.e+20
-;
 ; which resolution are we using?
 ;var4calscale=var4cal2scale ; 2x2 degree resolution
 var4calscale=var4cal25scale ; 2.5x2.5 degree resolution
 
+printVarSummary(var4cal25)
 var4calscale!0="lat"
 var4calscale&lat=var4cal25&latitude
 var4calscale!1="lon"
 var4calscale&lon=var4cal25&longitude
-;print("-=-=-=-=-=-=-=-=-=-=-=-=-=")
-;printVarSummary(var4calscale)
+
+crapname="cltisccp"
+var_isccp_o=data_isccp->$crapname$(0,:,:) ; isccp observations
+
 ;print("-=-=-=-=-=-=-=-=-=-=-=-=-=")
 
-;var_isccp_o!0="latitude"
-;var_isccp_o&lat=var_isccp&latitude
-;var_isccp_o!1="longitude_2"
-;var_isccp_o&lon=var_isccp&longitude_2
+  print("am4p0 calip sim data file is: "+infile)
+  print("am4p0 isccp sim data file is: "+infile_isccpsim)
+  print("am4p0 clt data file is: "+infile_clt)
+  print("calipso first infile is: "+infile8)
+  print("calipso second infile is: "+infile8_new)
+  print("isccp infile is: "+infile_isccp)
+
+  printVarSummary(var4cal25) ; 72x144 lon: -180:180
+  printVarSummary(var_isccp_o) ; 72x144  lon:  -180:180
+  printVarSummary(var4) ; from calipso simulator   : 180x288  lon: -180:180
+
+var_isccp_o=lonPivot(var_isccp_o,0.5)
+var4cal25  =lonPivot(var4cal25,0.5)
+var4calscale  =lonPivot(var4calscale,0.5)
+;  printVarSummary(var_isccp_o)
+
+
+;var4cal@_FillValue = 1.e+20
+var4cal25@_FillValue = 1.e+20
+;
 
 var_isccp=var_isccp_o
 var_isccp@_FillValue = 1.e+20
 
-;var_isccp!0="lat"
-;var_isccp&lat=var_isccp_o&latitude
-;var_isccp!1="lon"
-;var_isccp&lon=var_isccp_o&longitude_2
-;
 var_isccp!0="lat"
-var_isccp&lat=var4cal25&latitude
+var_isccp&lat=var_isccp_o&latitude
 var_isccp!1="lon"
-var_isccp&lon=var4cal25&longitude
-;
-;
-;
-;var4cal25scale!0="lat"
-;var4cal25scale&lat=var4cal25&latitude
-;var4cal25scale!1="lon"
-;var4cal25scale&lon=var4cal25&longitude
+var_isccp&lon=var_isccp_o&longitude_2
 ;
 print("max of var4 from cal: "+max(var4calscale))
 print("min of var4 from cal: "+min(var4calscale))
 ;------------------------------------------------------------
 ; the calipso data and am4 data are not on the same grid...
 
-var_to_interpolate=var4
-var_isccp_to_interpolate=var5
-
+var_to_interpolate=var4           ; calipso simulator output
+var_isccp_to_interpolate=var5     ; isccp simulator output
 
 var_to_interpolate!0="lat"
 var_to_interpolate&lat=var4&lat
@@ -204,51 +188,43 @@ print(lonW+"  "+lonE+"   "+var4cal&lon(1)+"  "+var4cal&lon(144))
    interpolated_var_cal = area_conserve_remap_Wrap (var_to_interpolate&lon, var_to_interpolate&lat, var_to_interpolate,LON_25x25, LAT_25x25, opt)
    interpolated_var_isccp = area_conserve_remap_Wrap (var_isccp_to_interpolate&lon, var_isccp_to_interpolate&lat, var_isccp_to_interpolate,LON_25x25, LAT_25x25, opt)
 
-;*************************************************************
-print("-----------------------------------------------------------------------")
-print("before anything happened to calipso observations")
-printVarSummary(var4cal25)
-print("-----------------------------------------------------------------------")
-print("-----------------------------------------------------------------------")
-print("before anything happened to calipso simulator")
-printVarSummary(var4)
-print("-----------------------------------------------------------------------")
-print("-----------------------------------------------------------------------")
-print("after calipso simulator is interpolated")
-printVarSummary(interpolated_var_cal)
-print("-----------------------------------------------------------------------")
+;;;*************************************************************
+;;
+;print("-----------------------------------------------------------------------")
+;print("before anything happened to isccp observations")
+;printVarSummary(var_isccp_o)
+;print("-----------------------------------------------------------------------")
+;print("-----------------------------------------------------------------------")
+;print("before anything happened to isccp simulator")
+;printVarSummary(var5)
+;print("-----------------------------------------------------------------------")
+;print("-----------------------------------------------------------------------")
+;print("after isccp simulator is interpolated (var_90x180)")
+;printVarSummary(interpolated_var_isccp)
+;print("-----------------------------------------------------------------------")
 
-
-print("-----------------------------------------------------------------------")
-print("before anything happened to isccp observations")
-printVarSummary(var_isccp_o)
-print("-----------------------------------------------------------------------")
-print("-----------------------------------------------------------------------")
-print("before anything happened to isccp simulator")
-printVarSummary(var5)
-print("-----------------------------------------------------------------------")
-print("-----------------------------------------------------------------------")
-print("after isccp simulator is interpolated")
-printVarSummary(interpolated_var_isccp)
-print("-----------------------------------------------------------------------")
-
-
+; save interpolated simulator output...
+; these should now both by 72x144
 var_90x180=interpolated_var_cal
-;  printVarSummary(var_90x180)
+  printVarSummary(var_90x180)
 
 var_isccp_90x180=interpolated_var_isccp
-  print("dimensions of interpolated model data: "+dimsizes(var_90x180))
-  print("dimensions of interpolated isccp model data: "+dimsizes(var_isccp_90x180))
+  printVarSummary(var_isccp_90x180)
 
-;var_90x180!0="lat"
-;var_90x180&lat=LAT_25x25
-;var_90x180!1="lon"
-;var_90x180&lon=LON_25x25
-;LON_25x25;
+;  print("dimensions of interpolated model data: "+dimsizes(var_90x180))
+;  print("dimensions of interpolated isccp model data: "+dimsizes(var_isccp_90x180))
+
 var_isccp_90x180!0="lat"
-var_isccp_90x180&lat=var4cal25&latitude
+var_isccp_90x180&lat=var_isccp_o&latitude
 var_isccp_90x180!1="lon"
-var_isccp_90x180&lon=var4cal25&longitude
+var_isccp_90x180&lon=var_isccp_o&longitude_2
+
+; var4cal25
+
+;var_isccp_90x180!0="lat"
+;var_isccp_90x180&lat=var4cal25&latitude
+;var_isccp_90x180!1="lon"
+;var_isccp_90x180&lon=var4cal25&longitude
 ;var_isccp!0="lat"
 ;var_isccp&lat=var4cal25&latitude
 ;var_isccp!1="lon"
@@ -279,36 +255,35 @@ field6_weighted_ave     = wgt_areaave(var6,clat,1.0,1)
 ; compute latitude weighted mean values for the 2x2 data both calipso and am4
 
 lat_cobs  = data_cal25->latitude
+lat_iobs  = data_isccp->latitude
 rad_cobs  = 4.0*atan(1.0)/180.0
 clat_cobs=cos(lat_cobs*rad_cobs)
+clat_iscobs=cos(lat_iobs*rad_cobs)
 
 ; calipso simulator data from am4.0
 var_90x180_weighted_ave  = wgt_areaave(var_90x180,clat_cobs,1.0,0)
-var_isccp_90x180_weighted_ave  = wgt_areaave(var_isccp_90x180,clat_cobs,1.0,0)
+var_isccp_90x180_weighted_ave  = wgt_areaave(var_isccp_90x180,clat_iscobs,1.0,0)
 
-print("***********************")
-var4calscale=lonPivot(var4calscale,0.5)
-printVarSummary(var4calscale)
-print("***********************")
-;var_90x180=lonPivot(var_90x180,0.5)
-printVarSummary(var_90x180)
-;print(var_90x180&lon)
-print("***********************")
-print("***********************")
-var_isccp=lonPivot(var_isccp,0.5)
-printVarSummary(var_isccp)
-print("***********************")
-var_isccp_90x180=lonPivot(var_isccp_90x180,0.5)
-printVarSummary(var_isccp_90x180)
-;var_isccp=lonPivot(var_isccp,0.5)
-print("***********************")
+;print("***********************")
+;;print("***********************")
+;;var4calscale=lonPivot(var4calscale,0.5)
+;;printVarSummary(var4calscale)
+;;print("***********************")
+;;var_90x180=lonPivot(var_90x180,0.5)
+;;printVarSummary(var_90x180)
+;;print(var_90x180&lon)
+;;print("***********************")
+;;print("***********************")
+;;var_isccp=lonPivot(var_isccp,0.5)
+;;printVarSummary(var_isccp)
+;;print("***********************")
+;;var_isccp_90x180=lonPivot(var_isccp_90x180,0.5)
+;;printVarSummary(var_isccp_90x180)
+;;var_isccp=lonPivot(var_isccp,0.5)
+;print("***********************")
+;print("***********************")
 
-;var_mask = where(var4calscale.eq.var4calscale@_FillValue,var4calscale@_FillValue,var_90x180)
-;var_masked_weighted_ave  = wgt_areaave(var_mask,clat_cobs,1.0,0)
-;  print("weighted total cloud cover from am4 calipso simulator: "+var_90x180_weighted_ave)
-;  print("weighted and masked total cloud cover am4 cal sim: "+var_masked_weighted_ave)
-;  print("weighted total cloud cover from am4 isccp simulator: "+var_isccp_90x180_weighted_ave)
-
+;-=-=-=-=-=-=-=-=--=Compute Bias Patterns-=-=-=-=-=-=-=-=-
 ; model minus calipso
 ;am4tcl_bias=var_mask-var4calscale
 am4tcl_bias=var_90x180-var4calscale
@@ -317,16 +292,15 @@ am4tcl_bias!0="lat"
 am4tcl_bias&lat=var4calscale&lat
 am4tcl_bias!1="lon"
 am4tcl_bias&lon=var4calscale&lon
-printVarSummary(am4tcl_bias)
+;printVarSummary(am4tcl_bias)
 ;
 am4_bias_cal_weighted_ave  = wgt_areaave(am4tcl_bias,clat_cobs,1.0,0)
   print("weighted total cloud cover bias with calipso simulator: "+am4_bias_cal_weighted_ave)
 ;
-;
-
 
 ; model minus isccp 
 am4tcl_bias_isccp=var_isccp_90x180-var_isccp
+;-=-=-=-=-=-=-=-=--=Compute Bias Patterns-=-=-=-=-=-=-=-=-
 
 
   ;print("------------------------------------------------------------------")
@@ -346,15 +320,20 @@ am4tcl_bias_isccp=var_isccp_90x180-var_isccp
   ;;print(lonW+"  "+lonE+"   "+var4cal&lon(1)+"  "+var4cal&lon(144))
 
 
+; this seems to work...
 am4tcl_bias_isccp!0="lat"
 am4tcl_bias_isccp&lat=var4cal25&latitude
 am4tcl_bias_isccp!1="lon"
 am4tcl_bias_isccp&lon=var4cal25&longitude
 
-;am4tcl_bias_isccp!0="lat"
-;am4tcl_bias_isccp&lat=var_isccp&lat
-;am4tcl_bias_isccp!1="lon"
-;am4tcl_bias_isccp&lon=var_isccp&lon
+;printVarSummary(var_isccp)
+var_isccp!0="lat"
+var_isccp&lat=var4cal25&latitude
+var_isccp!1="lon"
+var_isccp&lon=var4cal25&longitude
+
+printVarSummary(var4calscale)
+
 ;
 am4_bias_isc_weighted_ave  = wgt_areaave(am4tcl_bias_isccp,clat_cobs,1.0,0)
   print("weighted total cloud cover bias with isccp simulator: "+am4_bias_isc_weighted_ave)
@@ -377,16 +356,12 @@ posh_isccpbias=flt2string(decimalPlaces(am4_bias_isc_weighted_ave,2,True))
 posh_calbias=flt2string(decimalPlaces(am4_bias_cal_weighted_ave,2,True))
 ;maintitle=modelv+" "+" 10yrm "+varname1+" = "+posh
 titletotcl_isccp="ISCCP (2000-2007) clt = "+field_isccp_weighted_ave
-;titletotcl_cal="CALIPSO-GOCCP (2007-2016) "+varname4+" ("+posh4+"%)"
 titletotcl_cal="CALIPSO-GOCCP ("+posh4+"%)"
-;titletotcl_cal_sim="CALIPSO Sim "+varname4+" = "+posh_calsim
 titletotcl_cal_sim="CALIPSO Sim ("+posh_calsim+"%)"
 titletotcl_isc_sim="ISCCP Sim "+varname5+" = "+posh_isccpsim
-;titletotcl_am4="AM4.0 "+varname6+" = "+posh_am4clt
 titletotcl_am4="AM4.0 ("+posh_am4clt+"%)"
 title_clt_isccpbias="AM4.0 - ISCCP ("+posh_isccpbias+")"
 title_clt_calbias="AM4.0 - CALIPSO GOCCP ("+posh_calbias+")"
-
 
 
 ;***********************************************************************************
@@ -397,14 +372,10 @@ title_clt_calbias="AM4.0 - CALIPSO GOCCP ("+posh_calbias+")"
 my_levels1 = (/0,10,15,20,30,35,40,45,50,55,60,65,70,75,80/) ; 15
 my_levels2 = (/25,30,35,40,45,50,55,60,65,70,75,80,85,90,95/) ; 15
 my_levels_15posneg = (/-35,-30,-25,-20,-15,-10,-5,0,5,10,15,20,25,30,35/) ; plots 20 colors (19 nums) 1 less than thought
-;my_levels1 = (/25,30,35,40,45,50,55,60,65,70,75,80,85,90,95/) ; 15
 my_colors = (/12,18,22,26,30,34,37,40,43,46,49,52,55,58,61,64/) ; 16
-;my_colors_rev = (/64,61,58,55,52,49,46,43,40,37,34,30,26,22,18,12/) ; 16 --> low numbers are dark colors
 my_colors_rev = (/64,58,52,46,43,40,37,34,30,26,24,21,18,15,12,9/) ; 16 --> low numbers are dark colors
 my_colors_green = (/66,70,74,78,82,86,90,94,98,102,106,110,114,118,122,128/) ; 16 --> low numbers are dark colors
-;my_colors_blue = (/128,121,114,107,100,93,87,80,73,66,59,52,45,38,31,24/) ; 16 --> low numbers are dark colors
 my_colors_blue = (/0,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16/) ; 16 --> low numbers are dark colors
-;my_colors_blue = (/34,70,74,78,82,86,90,94,98,102,106,110,114,118,122,128/) ; 16 --> low numbers are dark colors
 my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
 
 my_colors_blured = (/50,60,70,80,90,100,110,120,136,146,156,166,176,186,196,206/) ; 16
@@ -413,9 +384,6 @@ my_colors_red = (/129,139,149,159,169,179,189,199,209,219,229,234,239,244,249,25
   wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
   ;wks = gsn_open_wks("newPDF","testplot")          ; send graphics to ps file
   ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
-  ;gsn_define_colormap(wks,"WhBlGrYeRe")
-  ;gsn_define_colormap(wks,"matlab_jet")
-  ;gsn_define_colormap(wks,"MPL_BrBG")
 
 figurenumber = 1 ; 2 will trigger the 3 panel figure to be plotted, 1 is defualt
 ; 2 prints 3 panel figure with isccp, calipso, and am4 output
@@ -433,7 +401,7 @@ if (figurenumber .lt. 2) then
   res@cnLinesOn         = False
   ;res@mpCenterLonF      = 180.
   res@mpCenterLonF      = 0.
-  res@mpGridAndLimbOn   = True              ; turn on lat/lon lines
+  res@mpGridAndLimbOn   = False              ; turn on lat/lon lines
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 30.               ; spacing for lat lines
   res@mpGridLonSpacingF = 30.               ; spacing for lon lines

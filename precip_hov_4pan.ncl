@@ -9,7 +9,7 @@ begin
 path_to_wc="/Users/silvers/data"
 exdir="/WalkerCell/testing_20181203"
 
-fileout="hov_precip"
+fileout="hovm_precip"
 plottitle="test title tude"
 ;endtime=1800
 endtime=1090
@@ -98,19 +98,31 @@ p_d_xt&xdim=hor_x_d
 plot_type="eps"
 wks = gsn_open_wks(plot_type,fileout)
 
+; original
+;my_levels1 = (/1,5,10,15,20, \
+;               25,30,35,40,45, \
+;               50,55,60,65,70, \
+;               75,80,85,90,95/); \
+;
+;my_colors1 = (/111,121,124,134,159, \
+;                166,173,180,186,193, \
+;                200,205,210,215,220, \
+;                225,230,235,240,245, \
+;                255 /);,211,216/) ; 
+
 my_levels1 = (/1,5,10,15,20, \
-               25,30,35,40,45, \
-               50,55,60,65,70, \
-               75,80,85,90,95/); \
-               ;100,105 /)
+               30,40, \
+               50,60,70, \
+               80,90/); \
 
-my_colors1 = (/111,121,124,134,159, \
-                166,173,180,186,193, \
-                200,205,210,215,220, \
-                225,230,235,240,245, \
-                255 /);,211,216/) ; 
+my_colors1 = (/0,7,67, \
+                72,77,82,87,92, \
+                97,130,137, \
+                143,150, \
+                177 /); 
 
-gsn_define_colormap(wks,"amwg256")
+;gsn_define_colormap(wks,"amwg256")
+gsn_define_colormap(wks,"nice_gfdl") ; 225 colors
 ;plot = new(1,graphic)
 
 ; create resource for plot
